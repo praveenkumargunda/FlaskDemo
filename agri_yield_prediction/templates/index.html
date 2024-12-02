@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agricultural Yield Prediction</title>
+</head>
+<body>
+    <h1>Agricultural Yield Prediction</h1>
+    <form action="/predict" method="POST">
+        <label>Rainfall (mm):</label>
+        <input type="number" name="rainfall" step="0.1" required><br>
+        
+        <label>Temperature (°C):</label>
+        <input type="number" name="temperature" step="0.1" required><br>
+        
+        <label>Soil Quality (1-10):</label>
+        <input type="number" name="soil_quality" step="0.1" required><br>
+        
+        <button type="submit">Predict Yield</button>
+    </form>
+</body>
+</html>
