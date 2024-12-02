@@ -1,5 +1,4 @@
-# app.py
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template, redirect, url_for
 import pandas as pd
 import joblib
 from sklearn.preprocessing import StandardScaler
@@ -16,24 +15,27 @@ def load_model():
         print(f"Error loading model: {e}")
         return None
 
-# Endpoint for predictions
+# Route to display the index page (the form)
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
+
+# Route to handle prediction
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
         # Load the trained model
         model = load_model()
         if model is None:
-            return jsonify({"error": "Model not found. Please ensure the model is trained and saved."}), 400
+            return "Model not found. Please ensure the model is trained and saved.", 500
         
-        # Get input data from the request (expecting JSON)
-        data = request.get_json()
+        # Get input data from the form
+        rainfall = float(request.form['rainfall'])
+        temperature = float(request.form['temperature'])
+        soil_quality = float(request.form['soil_quality'])
         
-        # Validate the input data
-        if not all(feature in data for feature in ['rainfall', 'temperature', 'soil_quality']):
-            return jsonify({"error": "Missing required features. Ensure input includes 'rainfall', 'temperature', and 'soil_quality'."}), 400
-        
-        # Extract features from the input data
-        input_data = [data['rainfall'], data['temperature'], data['soil_quality']]
+        # Prepare input data for prediction
+        input_data = [rainfall, temperature, soil_quality]
         
         # Convert input data into a DataFrame for scaling
         input_df = pd.DataFrame([input_data], columns=['rainfall', 'temperature', 'soil_quality'])
@@ -43,18 +45,13 @@ def predict():
         input_scaled = scaler.fit_transform(input_df)
         
         # Make a prediction using the model
-        prediction = model.predict(input_scaled)
+        prediction = model.predict(input_scaled)[0]
         
-        # Return the prediction
-        return jsonify({"prediction": prediction[0]})
+        # Render the result page with the prediction
+        return render_template('result.html', yield_prediction=prediction)
     
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Main route to check if the server is running
-@app.route('/', methods=['GET'])
-def index():
-    return jsonify({"message": "Welcome to the Crop Yield Prediction API!"})
+        return str(e), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
